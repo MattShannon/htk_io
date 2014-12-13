@@ -1,0 +1,3 @@
+include License
+include README.rst
+include example/*.py
