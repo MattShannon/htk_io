@@ -8,6 +8,12 @@ For example, HTK and HTS label files and decision trees can be read into memory
 as python data structures, and python data structures can be written to disk as
 HTK and HTS files.
 
+License
+-------
+
+Please see the file ``License`` for details of the license and warranty for
+htk_io.
+
 Installation
 ------------
 
