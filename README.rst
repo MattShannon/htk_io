@@ -30,16 +30,14 @@ Alternatively you can download htk_io from PyPI and install it using::
 The latest development version of htk_io is available from a github repository
 (see below).
 
+To check that htk_io is installed correctly you can run the test suite::
+
+    python -m unittest discover htk_io
+
 Usage
 -----
 
 A few examples are provided in the ``example`` directory.
-
-License
--------
-
-Please see the file ``License`` for details of the license and warranty for
-htk_io.
 
 Source
 ------
