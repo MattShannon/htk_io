@@ -37,7 +37,10 @@ To check that htk_io is installed correctly you can run the test suite::
 Usage
 -----
 
-A few examples are provided in the ``example`` directory.
+Examples of usage of various functions and classes are included in their
+docstrings.
+A few examples of files in the formats this package can read and write are
+provided in the ``example`` directory.
 
 Source
 ------
