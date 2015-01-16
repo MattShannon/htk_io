@@ -15,7 +15,7 @@ with open('README.rst') as readmeFile:
 
 setup(
     name='htk_io',
-    version='0.1',
+    version='0.2.dev1',
     description='Read and write HTK and HTS files from python.',
     url='http://github.com/MattShannon/htk_io',
     author='Matt Shannon',
