@@ -4,9 +4,16 @@ htk_io
 This python package allows reading and writing of files in some of the formats
 used by `Hidden Markov Model Toolkit (HTK) <http://htk.eng.cam.ac.uk/>`_ and
 `HMM-based Speech Synthesis System (HTS) <http://hts.sp.nitech.ac.jp/>`_.
-For example, HTK and HTS label files and decision trees can be read into memory
-as python data structures, and python data structures can be written to disk as
-HTK and HTS files.
+The following file formats are currently supported:
+
+- alignment files (also known as "label" files)
+- decision tree question set files
+- decision tree files
+
+Alignments, trees, etc are represented in memory using simple python data
+structures.
+Files in the above formats may be read into, or written from, these python
+representations.
 
 License
 -------
