@@ -10,6 +10,7 @@ import htk_io.alignment
 import unittest
 import doctest
 import random
+
 from numpy.random import randint, randn
 
 def load_tests(loader, tests, ignore):
