@@ -212,7 +212,7 @@ def writeTreeFileLines(questions, streamSpecedTrees):
 
 def readTreeFile(treeFile):
     """Reads a decision tree file."""
-    lines = [ line.rstrip('\n') for line in open(treeFile) ]
+    lines = [ line.rstrip('\n') for line in open(treeFile, 'U') ]
     questions, streamSpecedTrees = readTreeFileLines(lines)
     return questions, streamSpecedTrees
 
@@ -223,7 +223,7 @@ def readTreeFileVerifying(treeFile):
     reproduces the original decision tree file up to certain whitespace
     substitutions.
     """
-    lines = [ line.rstrip('\n') for line in open(treeFile) ]
+    lines = [ line.rstrip('\n') for line in open(treeFile, 'U') ]
     questions, streamSpecedTrees = verifiedRead(
         readTreeFileLines, writeTreeFileLines, lines, unpack=True
     )

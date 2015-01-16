@@ -73,7 +73,7 @@ def writeQuestionLines(questions, isTreeFile=False):
 
 def readQuesFile(quesFile):
     """Reads a question file."""
-    lines = [ line.rstrip('\n') for line in open(quesFile) ]
+    lines = [ line.rstrip('\n') for line in open(quesFile, 'U') ]
     questions = readQuestionLines(lines)
     return questions
 
@@ -84,7 +84,7 @@ def readQuesFileVerifying(quesFile):
     reproduces the original question file up to certain whitespace
     substitutions.
     """
-    lines = [ line.rstrip('\n') for line in open(quesFile) ]
+    lines = [ line.rstrip('\n') for line in open(quesFile, 'U') ]
     questions = verifiedRead(readQuestionLines, writeQuestionLines, lines)
     return questions
 
