@@ -457,6 +457,72 @@ writeAlignmentFile = writeWrap(writeAlignmentLines)
 readAlignmentFile = readWrap(readAlignmentLines)
 
 class AlignmentGetter(object):
+    """This class reads alignment files on demand from a directory.
+
+    Example usage (assumes the current directory contains the "example"
+    subdirectory included in source code for this package):
+
+    >>> import htk_io.alignment
+    >>> alignmentGetter = htk_io.alignment.AlignmentGetter(
+    ...     framePeriod=0.005, alignmentDir='example'
+    ... )
+    >>> alignmentGetter('simple') == [
+    ...     (0, 10, 'apple', None),
+    ...     (10, 41, 'pears', None),
+    ... ]
+    True
+
+    For a 2-level alignment:
+
+    >>> alignmentGetter('simple-2-level') == [
+    ...     (0, 10, 'apple', [
+    ...         (0, 2, 'a', None),
+    ...         (2, 3, 'p', None),
+    ...         (3, 5, 'p', None),
+    ...         (5, 8, 'l', None),
+    ...         (8, 10, 'e', None),
+    ...     ]),
+    ...     (10, 41, 'pears', [
+    ...         (10, 11, 'p', None),
+    ...         (11, 13, 'e', None),
+    ...         (13, 14, 'a', None),
+    ...         (14, 27, 'r', None),
+    ...         (27, 41, 's', None),
+    ...     ]),
+    ... ]
+    True
+
+    Or even a 3-level alignment:
+
+    >>> htk_io.alignment.AlignmentGetter(
+    ...     framePeriod=1.0, alignmentDir='example'
+    ... )('example-3-level') == [
+    ...     (0, 8, '0', [
+    ...         (0, 3, 'a', [
+    ...             (0, 1, 'A', None),
+    ...             (1, 2, 'B', None),
+    ...             (2, 3, 'C', None),
+    ...         ]),
+    ...         (3, 5, 'b', [
+    ...             (3, 4, 'D', None),
+    ...             (4, 5, 'E', None),
+    ...         ]),
+    ...         (5, 6, 'c', [
+    ...             (5, 6, 'F', None),
+    ...         ]),
+    ...         (6, 8, 'c', [
+    ...             (6, 7, 'G', None),
+    ...             (7, 8, 'H', None),
+    ...         ]),
+    ...     ]),
+    ...     (8, 10, '1', [
+    ...         (8, 10, 'd', [
+    ...             (8, 10, 'I', None),
+    ...         ]),
+    ...     ]),
+    ... ]
+    True
+    """
     def __init__(self, framePeriod, alignmentDir, alignmentExt='lab',
                  transform=None):
         self.framePeriod = framePeriod
