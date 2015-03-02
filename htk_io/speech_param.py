@@ -25,5 +25,8 @@ def readParamFileDouble(paramFile, paramOrder):
         (-1, paramOrder)
     )
 
-def writeParamFile(outSeq, paramFile, paramOrder=None):
+def writeParamFile(outSeq, paramFile):
     outSeq.astype(np.float32).tofile(paramFile)
+
+def writeParamFileDouble(outSeq, paramFile):
+    outSeq.astype(np.float64).tofile(paramFile)
