@@ -454,6 +454,107 @@ class AlignmentIo(AlignmentIoBase):
         alignment = unflatten(flatAlignment)
         return alignment
 
+def mapAlignmentLabels(alignment, labelMaps):
+    """Transforms an alignment by mapping the labels at each depth.
+
+    Labels at the highest level are mapped using labelMaps[0], and labels at
+    the second highest level are mapped using labelMaps[1], etc.
+    """
+    if not labelMaps:
+        return alignment
+    else:
+        labelMap = labelMaps[0]
+        subLabelMaps = labelMaps[1:]
+        return [
+            (
+                startTime,
+                endTime,
+                labelMap(label),
+                mapAlignmentLabels(subAlignment, subLabelMaps)
+            )
+            for startTime, endTime, label, subAlignment in alignment
+        ]
+
+class AlignmentLabelTransform(object):
+    """Transforms an alignment by mapping the labels at each depth.
+
+    Labels at the highest level are mapped using labelMaps[0], and labels at
+    the second highest level are mapped using labelMaps[1], etc.
+
+    Example usage:
+
+    >>> import htk_io.alignment
+    >>> alignmentLabelTransform = htk_io.alignment.AlignmentLabelTransform(
+    ...     [lambda label: label == 'cat']
+    ... )
+    >>> alignmentLabelTransform([
+    ...     (0, 1, 'the', None),
+    ...     (1, 2, 'cat', None),
+    ...     (2, 5, 'cat', None),
+    ...     (5, 6, 'sat', None),
+    ... ]) == [
+    ...     (0, 1, False, None),
+    ...     (1, 2, True, None),
+    ...     (2, 5, True, None),
+    ...     (5, 6, False, None),
+    ... ]
+    True
+
+    If each of the label transforms has an `inv` method to compute the inverse
+    then so does the overall alignment transform:
+
+    >>> class SimpleTransform(object):
+    ...     def __call__(self, string):
+    ...         return list(string)
+    ...
+    ...     def inv(self, _list):
+    ...         return ''.join(_list)
+    ...
+    >>> alignmentLabelTransform = htk_io.alignment.AlignmentLabelTransform(
+    ...     [SimpleTransform()]
+    ... )
+    >>> alignmentLabelTransform([
+    ...     (0, 1, 'the', None),
+    ...     (1, 2, 'cat', None),
+    ...     (2, 5, 'cat', None),
+    ...     (5, 6, 'sat', None),
+    ... ]) == [
+    ...     (0, 1, ['t', 'h', 'e'], None),
+    ...     (1, 2, ['c', 'a', 't'], None),
+    ...     (2, 5, ['c', 'a', 't'], None),
+    ...     (5, 6, ['s', 'a', 't'], None),
+    ... ]
+    True
+    >>> alignmentLabelTransform.inv([
+    ...     (0, 1, ['t', 'h', 'e'], None),
+    ...     (1, 2, ['c', 'a', 't'], None),
+    ...     (2, 5, ['c', 'a', 't'], None),
+    ...     (5, 6, ['s', 'a', 't'], None),
+    ... ]) == [
+    ...     (0, 1, 'the', None),
+    ...     (1, 2, 'cat', None),
+    ...     (2, 5, 'cat', None),
+    ...     (5, 6, 'sat', None),
+    ... ]
+    True
+    """
+    def __init__(self, labelTransforms):
+        self.labelTransforms = labelTransforms
+
+        try:
+            self.labelTransformInvs = [
+                labelTransform.inv
+                for labelTransform in self.labelTransforms
+            ]
+        except:
+            pass
+
+    def __call__(self, alignment):
+        return mapAlignmentLabels(alignment, self.labelTransforms)
+
+    def inv(self, alignmentNew):
+        return mapAlignmentLabels(alignmentNew, self.labelTransformInvs)
+
 class AlignmentGetter(object):
     """This class reads alignment files on demand from a directory.
 

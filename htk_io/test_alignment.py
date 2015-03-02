@@ -81,6 +81,17 @@ def gen_framePeriod():
 
     return framePeriod
 
+class SimpleLabelMap(object):
+    def __init__(self, ident):
+        self.ident = ident
+
+    def __call__(self, label):
+        return self.ident, label
+
+def gen_labelMap():
+    ident = randint(1000)
+    return SimpleLabelMap(ident)
+
 class AlignmentTest(unittest.TestCase):
     def test_SimpleAlignmentIo_writeLines_empty(self):
         framePeriod = gen_framePeriod()
@@ -224,6 +235,42 @@ class AlignmentTest(unittest.TestCase):
             alignmentLines = alignmentIo.writeLines(alignment)
             alignmentAgain = alignmentIo.readLines(alignmentLines)
             self.assertEqual(alignmentAgain, alignment)
+
+    def test_mapAlignmentLabels_1_level(self, its=50):
+        for it in range(its):
+            alignment = gen_alignment()
+            labelMap = gen_labelMap()
+
+            alignmentNew = htk_io.alignment.mapAlignmentLabels(
+                alignment,
+                [labelMap]
+            )
+
+            alignmentNewGood = [
+                (startTime, endTime, labelMap(label), None)
+                for startTime, endTime, label, subAlignment in alignment
+            ]
+            self.assertEqual(alignmentNew, alignmentNewGood)
+
+    def test_mapAlignmentLabels_nested(self, its=50):
+        for it in range(its):
+            numLevels = randint(2, 4)
+            alignment = gen_alignment(numLevels=numLevels)
+            labelMaps = [ gen_labelMap() for _ in range(numLevels) ]
+
+            alignmentNew = htk_io.alignment.mapAlignmentLabels(
+                alignment, labelMaps
+            )
+
+            alignmentNewAgain = [
+                (
+                    startTime, endTime, labelMaps[0](label),
+                    htk_io.alignment.mapAlignmentLabels(subAlignment, labelMaps[1:])
+                )
+                for startTime, endTime, label, subAlignment in alignment
+            ]
+
+            self.assertEqual(alignmentNewAgain, alignmentNew)
 
 if __name__ == '__main__':
     unittest.main()
