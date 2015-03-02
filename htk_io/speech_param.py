@@ -14,19 +14,23 @@ import numpy as np
 # FIXME : add tests
 
 def readParamFile(paramFile, paramOrder):
+    """Reads an HTS speech parameter file (single precision)."""
     return np.reshape(
         np.fromfile(paramFile, dtype=np.float32),
         (-1, paramOrder)
     ).astype(np.float64)
 
 def readParamFileDouble(paramFile, paramOrder):
+    """Reads an HTS speech parameter file (double precision)."""
     return np.reshape(
         np.fromfile(paramFile, dtype=np.float64),
         (-1, paramOrder)
     )
 
 def writeParamFile(outSeq, paramFile):
+    """Writes an HTS speech parameter file (single precision)."""
     outSeq.astype(np.float32).tofile(paramFile)
 
 def writeParamFileDouble(outSeq, paramFile):
+    """Writes an HTS speech parameter file (double precision)."""
     outSeq.astype(np.float64).tofile(paramFile)
