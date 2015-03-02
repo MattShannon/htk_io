@@ -82,61 +82,50 @@ def gen_framePeriod():
     return framePeriod
 
 class AlignmentTest(unittest.TestCase):
-    def test_writeSimpleAlignmentLines_empty(self):
+    def test_SimpleAlignmentIo_writeLines_empty(self):
         framePeriod = gen_framePeriod()
-        self.assertEqual(
-            htk_io.alignment.writeSimpleAlignmentLines([], framePeriod),
-            []
-        )
+        alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
+        self.assertEqual(alignmentIo.writeLines([]), [])
 
-    def test_writeSimpleAlignmentLines_single_line(self, its=50):
+    def test_SimpleAlignmentIo_writeLines_single_line(self, its=50):
         for it in range(its):
             framePeriod = gen_framePeriod()
+            alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
             startTime = randint(-10, 11)
             dur = randint(10)
             endTime = startTime + dur
             label = gen_label()
             alignment = [(startTime, endTime, label, None)]
 
-            alignmentLines = htk_io.alignment.writeSimpleAlignmentLines(
-                alignment, framePeriod
-            )
+            alignmentLines = alignmentIo.writeLines(alignment)
 
             startTicks = int(round(startTime * framePeriod * 1e7))
             endTicks = int(round(endTime * framePeriod * 1e7))
             alignmentLinesGood = ['%s %s %s' % (startTicks, endTicks, label)]
             self.assertEqual(alignmentLines, alignmentLinesGood)
 
-    def test_writeSimpleAlignmentLines_concat(self, its=50):
+    def test_SimpleAlignmentIo_writeLines_concat(self, its=50):
         for it in range(its):
             framePeriod = gen_framePeriod()
+            alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
             alignment = gen_alignment()
             breakIndex = randint(len(alignment) + 1)
             alignment0 = alignment[:breakIndex]
             alignment1 = alignment[breakIndex:]
 
-            alignmentBla0 = htk_io.alignment.writeSimpleAlignmentLines(
-                alignment0, framePeriod
-            )
-            alignmentBla1 = htk_io.alignment.writeSimpleAlignmentLines(
-                alignment1, framePeriod
-            )
-            alignmentBla = htk_io.alignment.writeSimpleAlignmentLines(
-                alignment, framePeriod
-            )
-            self.assertEqual(alignmentBla0 + alignmentBla1, alignmentBla)
+            alignmentLines0 = alignmentIo.writeLines(alignment0)
+            alignmentLines1 = alignmentIo.writeLines(alignment1)
+            alignmentLines = alignmentIo.writeLines(alignment)
+            self.assertEqual(alignmentLines0 + alignmentLines1, alignmentLines)
 
-    def test_writeSimpleAlignmentLines_readSimpleAlignmentLines(self, its=50):
+    def test_SimpleAlignmentIo_readLines(self, its=50):
         for it in range(its):
             alignment = gen_alignment()
             framePeriod = gen_framePeriod()
+            alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
 
-            alignmentLines = htk_io.alignment.writeSimpleAlignmentLines(
-                alignment, framePeriod
-            )
-            alignmentAgain = htk_io.alignment.readSimpleAlignmentLines(
-                alignmentLines, framePeriod
-            )
+            alignmentLines = alignmentIo.writeLines(alignment)
+            alignmentAgain = alignmentIo.readLines(alignmentLines)
             self.assertEqual(alignmentAgain, alignment)
 
     def test_flatten_1_level(self, its=50):
@@ -194,52 +183,46 @@ class AlignmentTest(unittest.TestCase):
             alignmentAgain = htk_io.alignment.unflatten(flatAlignment)
             self.assertEqual(alignmentAgain, alignment)
 
-    def test_writeAlignmentLines_1_level(self, its=50):
+    def test_AlignmentIo_writeLines_1_level(self, its=50):
         for it in range(its):
             framePeriod = gen_framePeriod()
             alignment = gen_alignment()
+            simpleAlignmentIo = htk_io.alignment.SimpleAlignmentIo(
+                framePeriod
+            )
+            alignmentIo = htk_io.alignment.AlignmentIo(framePeriod)
 
             self.assertEqual(
-                htk_io.alignment.writeSimpleAlignmentLines(
-                    alignment, framePeriod
-                ),
-                htk_io.alignment.writeAlignmentLines(
-                    alignment, framePeriod
-                )
+                simpleAlignmentIo.writeLines(alignment),
+                alignmentIo.writeLines(alignment)
             )
 
-    def test_writeAlignmentLines_nested(self, its=50):
+    def test_AlignmentIo_writeLines_nested(self, its=50):
         for it in range(its):
             numLevels = randint(2, 4)
             alignment = gen_alignment(numLevels=numLevels)
             framePeriod = gen_framePeriod()
+            alignmentIo = htk_io.alignment.AlignmentIo(framePeriod)
 
-            alignmentLines = htk_io.alignment.writeAlignmentLines(
-                alignment, framePeriod
-            )
+            alignmentLines = alignmentIo.writeLines(alignment)
 
             alignmentLinesAgain = []
             for startTime, endTime, label, subAlignment in alignment:
-                subAlignmentLines = htk_io.alignment.writeAlignmentLines(
-                    subAlignment, framePeriod
-                )
+                subAlignmentLines = alignmentIo.writeLines(subAlignment)
                 alignmentLinesAgain.append(subAlignmentLines[0] + ' ' + label)
                 alignmentLinesAgain.extend(subAlignmentLines[1:])
 
             self.assertEqual(alignmentLinesAgain, alignmentLines)
 
-    def test_writeAlignmentLines_readAlignmentLines(self, its=50):
+    def test_AlignmentIo_readLines(self, its=50):
         for it in range(its):
             numLevels = randint(1, 4)
             alignment = gen_alignment(numLevels=numLevels)
             framePeriod = gen_framePeriod()
+            alignmentIo = htk_io.alignment.AlignmentIo(framePeriod)
 
-            alignmentLines = htk_io.alignment.writeAlignmentLines(
-                alignment, framePeriod
-            )
-            alignmentAgain = htk_io.alignment.readAlignmentLines(
-                alignmentLines, framePeriod
-            )
+            alignmentLines = alignmentIo.writeLines(alignment)
+            alignmentAgain = alignmentIo.readLines(alignmentLines)
             self.assertEqual(alignmentAgain, alignment)
 
 if __name__ == '__main__':

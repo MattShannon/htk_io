@@ -19,66 +19,76 @@ an alignment or None (to specify no sub-alignment).
 
 import os
 
-from htk_io.misc import readWrap, writeWrap
+class AlignmentIoBase(object):
+    """An abstract class for reading and writing HTK-style alignment files."""
+    def writeFile(self, filename, alignment):
+        lines = self.writeLines(alignment)
+        with open(filename, 'w') as f:
+            for line in lines:
+                f.write(line)
+                f.write('\n')
 
-def writeSimpleAlignmentLines(alignment, framePeriod):
-    """Writes (the lines of) a 1-level HTK-style alignment file.
+    def readFile(self, filename):
+        alignmentLines = [ line.rstrip('\n') for line in open(filename, 'U') ]
+        return self.readLines(alignmentLines)
 
-    Use `writeSimpleAlignmentFile` to write an actual file.
-
-    The amount of time between one frame and the next is specified by the float
-    `framePeriod` in seconds.
-
-    In most cases it is probably preferable to use `writeAlignmentLines`
-    instead of this function since it supports multilevel alignments.
-    See the 1-level alignment examples in the documentation for
-    `writeAlignmentLines` for examples of usage of this function.
-    """
-    if framePeriod < 1e-7:
-        # N.B. I believe write-then-read is guaranteed to recover original
-        #   integer-valued segment timings as long as framePeriod >= 1e-7
-        raise RuntimeError(
-            'writing alignment may be lossy since specified frame period is'
-            ' extremely small'
-        )
-
-    divisor = framePeriod * 1e7
-
-    alignmentLines = []
-    for startTime, endTime, label, subAlignment in alignment:
-        assert subAlignment is None
-        startTicks = int(round(startTime * divisor))
-        endTicks = int(round(endTime * divisor))
-        alignmentLines.append('%s %s %s' % (startTicks, endTicks, label))
-
-    return alignmentLines
-
-def readSimpleAlignmentLines(alignmentLines, framePeriod):
-    """Reads (the lines of) a 1-level HTK-style alignment file.
-
-    Use `readSimpleAlignmentFile` to read an actual file.
+class SimpleAlignmentIo(AlignmentIoBase):
+    """Reads and writes 1-level HTK-style alignment files.
 
     The amount of time between one frame and the next is specified by the float
     `framePeriod` in seconds.
 
-    In most cases it is probably preferable to use `readAlignmentLines` instead
-    of this function since it supports multilevel alignments.
-    See the 1-level alignment examples in the documentation for
-    `readAlignmentLines` for examples of usage of this function.
+    In most cases it is probably preferable to use `AlignmentIo` instead of
+    this class since it supports multilevel alignments.
     """
-    divisor = framePeriod * 1e7
+    def __init__(self, framePeriod):
+        self.framePeriod = framePeriod
 
-    alignment = []
-    for line in alignmentLines:
-        startTicks, endTicks, label = line.strip().split(None, 2)
-        startTime = int(round(int(startTicks) / divisor))
-        endTime = int(round(int(endTicks) / divisor))
-        alignment.append((startTime, endTime, label, None))
+        if self.framePeriod < 1e-7:
+            # N.B. I believe write-then-read is guaranteed to recover original
+            #   integer-valued segment timings as long as framePeriod >= 1e-7
+            raise RuntimeError(
+                'writing alignment files may be lossy since specified'
+                ' frame period is extremely small'
+            )
 
-    return alignment
+    def writeLines(self, alignment):
+        """Writes the lines of a 1-level HTK-style alignment file.
 
-writeSimpleAlignmentFile = writeWrap(writeSimpleAlignmentLines)
-readSimpleAlignmentFile = readWrap(readSimpleAlignmentLines)
+        Use `writeFile` method to write an actual file.
+
+        See the 1-level alignment examples in the documentation for
+        `AlignmentIo.writeLines` for examples of usage of this method.
+        """
+        divisor = self.framePeriod * 1e7
+
+        alignmentLines = []
+        for startTime, endTime, label, subAlignment in alignment:
+            assert subAlignment is None
+            startTicks = int(round(startTime * divisor))
+            endTicks = int(round(endTime * divisor))
+            alignmentLines.append('%s %s %s' % (startTicks, endTicks, label))
+
+        return alignmentLines
+
+    def readLines(self, alignmentLines):
+        """Reads the lines of a 1-level HTK-style alignment file.
+
+        Use `readFile` method to read an actual file.
+
+        See the 1-level alignment examples in the documentation for
+        `AlignmentIo.readLines` for examples of usage of this method.
+        """
+        divisor = self.framePeriod * 1e7
+
+        alignment = []
+        for line in alignmentLines:
+            startTicks, endTicks, label = line.strip().split(None, 2)
+            startTime = int(round(int(startTicks) / divisor))
+            endTime = int(round(int(endTicks) / divisor))
+            alignment.append((startTime, endTime, label, None))
+
+        return alignment
 
 def flatten(alignment, checkRecover=True):
     """Converts a hierarchical alignment to a flat alignment.
@@ -241,40 +251,64 @@ def unflatten(flatAlignment):
 
     return alignment
 
-def writeAlignmentLines(alignment, framePeriod, levelSep=None):
-    """Writes (the lines of) an HTK-style alignment file.
-
-    Use `writeAlignmentFile` to write an actual file.
+class AlignmentIo(AlignmentIoBase):
+    """Reads and writes HTK-style alignment files.
 
     Example usage:
 
     >>> import htk_io.alignment
-    >>> htk_io.alignment.writeAlignmentLines([
+    >>> alignmentIo = htk_io.alignment.AlignmentIo(framePeriod=1.0)
+    >>> alignmentIo.writeLines([
     ...     (0, 1, 'the', None),
     ...     (1, 2, 'cat', None),
     ...     (2, 5, 'cat', None),
     ...     (5, 6, 'sat', None),
-    ... ], framePeriod=1.0) == [
+    ... ]) == [
     ...     '0 10000000 the',
     ...     '10000000 20000000 cat',
     ...     '20000000 50000000 cat',
     ...     '50000000 60000000 sat',
     ... ]
     True
-
-    The amount of time between one frame and the next is specified by the float
-    `framePeriod` in seconds.
-
-    >>> htk_io.alignment.writeAlignmentLines([
-    ...     (0, 2, 'the', None),
-    ...     (2, 4, 'cat', None),
-    ...     (4, 10, 'cat', None),
-    ...     (10, 12, 'sat', None),
-    ... ], framePeriod=0.5) == [
+    >>> alignmentIo.readLines([
     ...     '0 10000000 the',
     ...     '10000000 20000000 cat',
     ...     '20000000 50000000 cat',
     ...     '50000000 60000000 sat',
+    ... ]) == [
+    ...     (0, 1, 'the', None),
+    ...     (1, 2, 'cat', None),
+    ...     (2, 5, 'cat', None),
+    ...     (5, 6, 'sat', None),
+    ... ]
+    True
+
+    The amount of time between one frame and the next is specified by the float
+    `framePeriod` in seconds.
+
+    >>> alignmentIo2 = htk_io.alignment.AlignmentIo(framePeriod=0.5)
+    >>> alignmentIo2.writeLines([
+    ...     (0, 2, 'the', None),
+    ...     (2, 4, 'cat', None),
+    ...     (4, 10, 'cat', None),
+    ...     (10, 12, 'sat', None),
+    ... ]) == [
+    ...     '0 10000000 the',
+    ...     '10000000 20000000 cat',
+    ...     '20000000 50000000 cat',
+    ...     '50000000 60000000 sat',
+    ... ]
+    True
+    >>> alignmentIo2.readLines([
+    ...     '0 10000000 the',
+    ...     '10000000 20000000 cat',
+    ...     '20000000 50000000 cat',
+    ...     '50000000 60000000 sat',
+    ... ]) == [
+    ...     (0, 2, 'the', None),
+    ...     (2, 4, 'cat', None),
+    ...     (4, 10, 'cat', None),
+    ...     (10, 12, 'sat', None),
     ... ]
     True
 
@@ -282,36 +316,51 @@ def writeAlignmentLines(alignment, framePeriod, levelSep=None):
     conversion from number of frames to units of 1e-7 seconds that happens
     during alignment writing:
 
-    >>> htk_io.alignment.writeAlignmentLines([
-    ...     (0, 1, 'a', None),
-    ... ], framePeriod=5e-8) # doctest: +ELLIPSIS
+    >>> alignmentIo3 = htk_io.alignment.AlignmentIo(framePeriod=5e-8)
+    ... # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
-    RuntimeError: writing alignment may be lossy...
+    RuntimeError: writing alignment files may be lossy...
 
     Alignments not starting at time zero are supported:
 
-    >>> htk_io.alignment.writeAlignmentLines([
+    >>> alignmentIo.writeLines([
     ...     (5, 6, 'the', None),
     ...     (6, 8, 'cat', None),
-    ... ], framePeriod=1.0) == [
+    ... ]) == [
     ...     '50000000 60000000 the',
     ...     '60000000 80000000 cat',
     ... ]
     True
-    >>> htk_io.alignment.writeAlignmentLines([
+    >>> alignmentIo.readLines([
+    ...     '50000000 60000000 the',
+    ...     '60000000 80000000 cat',
+    ... ]) == [
+    ...     (5, 6, 'the', None),
+    ...     (6, 8, 'cat', None),
+    ... ]
+    True
+    >>> alignmentIo.writeLines([
     ...     (-6, -5, 'the', None),
     ...     (-5, 4, 'cat', None),
-    ... ], framePeriod=1.0) == [
+    ... ]) == [
     ...     '-60000000 -50000000 the',
     ...     '-50000000 40000000 cat',
+    ... ]
+    True
+    >>> alignmentIo.readLines([
+    ...     '-60000000 -50000000 the',
+    ...     '-50000000 40000000 cat',
+    ... ]) == [
+    ...     (-6, -5, 'the', None),
+    ...     (-5, 4, 'cat', None),
     ... ]
     True
 
     It supports multilevel alignments.
     For example for a 2-level alignment:
 
-    >>> htk_io.alignment.writeAlignmentLines([
+    >>> alignmentIo.writeLines([
     ...     (0, 3, 'the', [
     ...         (0, 2, 'X', None),
     ...         (2, 3, 'Y', None),
@@ -320,105 +369,19 @@ def writeAlignmentLines(alignment, framePeriod, levelSep=None):
     ...         (3, 4, 'Y', None),
     ...         (4, 6, 'X', None),
     ...     ]),
-    ... ], framePeriod=1.0) == [
+    ... ]) == [
     ...     '0 20000000 X the',
     ...     '20000000 30000000 Y',
     ...     '30000000 40000000 Y cat',
     ...     '40000000 60000000 X',
     ... ]
     True
-
-    It works even for long utterances:
-
-    >>> htk_io.alignment.writeAlignmentLines([
-    ...     (0, 360000, 'a', None),
-    ... ], framePeriod=1.0) == [
-    ...     '0 3600000000000 a',
-    ... ]
-    True
-    >>> htk_io.alignment.writeAlignmentLines([
-    ...     (-360000, 0, 'a', None),
-    ... ], framePeriod=1.0) == [
-    ...     '-3600000000000 0 a',
-    ... ]
-    True
-    """
-    if levelSep is None:
-        levelSep = ' '
-
-    flatAlignment = flatten(alignment)
-    rawAlignment = [
-        (startTime, endTime, levelSep.join(labelTuple), subAlignment)
-        for startTime, endTime, labelTuple, subAlignment in flatAlignment
-    ]
-    alignmentLines = writeSimpleAlignmentLines(rawAlignment, framePeriod)
-    return alignmentLines
-
-def readAlignmentLines(alignmentLines, framePeriod, levelSep=None):
-    """Reads (the lines of) an HTK-style alignment file.
-
-    Use `readAlignmentFile` to read an actual file.
-
-    Example usage:
-
-    >>> import htk_io.alignment
-    >>> htk_io.alignment.readAlignmentLines([
-    ...     '0 10000000 the',
-    ...     '10000000 20000000 cat',
-    ...     '20000000 50000000 cat',
-    ...     '50000000 60000000 sat',
-    ... ], framePeriod=1.0) == [
-    ...     (0, 1, 'the', None),
-    ...     (1, 2, 'cat', None),
-    ...     (2, 5, 'cat', None),
-    ...     (5, 6, 'sat', None),
-    ... ]
-    True
-
-    The amount of time between one frame and the next is specified by the float
-    `framePeriod` in seconds.
-
-    >>> htk_io.alignment.readAlignmentLines([
-    ...     '0 10000000 the',
-    ...     '10000000 20000000 cat',
-    ...     '20000000 50000000 cat',
-    ...     '50000000 60000000 sat',
-    ... ], framePeriod=0.5) == [
-    ...     (0, 2, 'the', None),
-    ...     (2, 4, 'cat', None),
-    ...     (4, 10, 'cat', None),
-    ...     (10, 12, 'sat', None),
-    ... ]
-    True
-
-    Alignments not starting at time zero are supported:
-
-    >>> htk_io.alignment.readAlignmentLines([
-    ...     '50000000 60000000 the',
-    ...     '60000000 80000000 cat',
-    ... ], framePeriod=1.0) == [
-    ...     (5, 6, 'the', None),
-    ...     (6, 8, 'cat', None),
-    ... ]
-    True
-    >>> htk_io.alignment.readAlignmentLines([
-    ...     '-60000000 -50000000 the',
-    ...     '-50000000 40000000 cat',
-    ... ], framePeriod=1.0) == [
-    ...     (-6, -5, 'the', None),
-    ...     (-5, 4, 'cat', None),
-    ... ]
-    True
-
-    It supports multilevel alignments.
-    For example for a 2-level alignments:
-
-    >>> htk_io.alignment.readAlignmentLines([
+    >>> alignmentIo.readLines([
     ...     '0 20000000 X the',
     ...     '20000000 30000000 Y',
     ...     '30000000 40000000 Y cat',
     ...     '40000000 60000000 X',
-    ... ], framePeriod=1.0) == [
+    ... ]) == [
     ...     (0, 3, 'the', [
     ...         (0, 2, 'X', None),
     ...         (2, 3, 'Y', None),
@@ -432,29 +395,64 @@ def readAlignmentLines(alignmentLines, framePeriod, levelSep=None):
 
     It works even for long utterances:
 
-    >>> htk_io.alignment.readAlignmentLines([
+    >>> alignmentIo.writeLines([
+    ...     (0, 360000, 'a', None),
+    ... ]) == [
     ...     '0 3600000000000 a',
-    ... ], framePeriod=1.0) == [
+    ... ]
+    True
+    >>> alignmentIo.readLines([
+    ...     '0 3600000000000 a',
+    ... ]) == [
     ...     (0, 360000, 'a', None),
     ... ]
     True
-    >>> htk_io.alignment.readAlignmentLines([
+    >>> alignmentIo.writeLines([
+    ...     (-360000, 0, 'a', None),
+    ... ]) == [
     ...     '-3600000000000 0 a',
-    ... ], framePeriod=1.0) == [
+    ... ]
+    True
+    >>> alignmentIo.readLines([
+    ...     '-3600000000000 0 a',
+    ... ]) == [
     ...     (-360000, 0, 'a', None),
     ... ]
     True
     """
-    rawAlignment = readSimpleAlignmentLines(alignmentLines, framePeriod)
-    flatAlignment = [
-        (startTime, endTime, label.split(levelSep), subAlignment)
-        for startTime, endTime, label, subAlignment in rawAlignment
-    ]
-    alignment = unflatten(flatAlignment)
-    return alignment
+    def __init__(self, framePeriod, levelSep=None):
+        self.framePeriod = framePeriod
+        self.levelSep = levelSep
 
-writeAlignmentFile = writeWrap(writeAlignmentLines)
-readAlignmentFile = readWrap(readAlignmentLines)
+        self.simpleIo = SimpleAlignmentIo(self.framePeriod)
+
+    def writeLines(self, alignment):
+        """Writes the lines of an HTK-style alignment file.
+
+        Use `writeFile` method to write an actual file.
+        """
+        levelSep = ' ' if self.levelSep is None else self.levelSep
+
+        flatAlignment = flatten(alignment)
+        rawAlignment = [
+            (startTime, endTime, levelSep.join(labelTuple), subAlignment)
+            for startTime, endTime, labelTuple, subAlignment in flatAlignment
+        ]
+        alignmentLines = self.simpleIo.writeLines(rawAlignment)
+        return alignmentLines
+
+    def readLines(self, alignmentLines):
+        """Reads the lines of an HTK-style alignment file.
+
+        Use `readFile` method to read an actual file.
+        """
+        rawAlignment = self.simpleIo.readLines(alignmentLines)
+        flatAlignment = [
+            (startTime, endTime, label.split(self.levelSep), subAlignment)
+            for startTime, endTime, label, subAlignment in rawAlignment
+        ]
+        alignment = unflatten(flatAlignment)
+        return alignment
 
 class AlignmentGetter(object):
     """This class reads alignment files on demand from a directory.
@@ -463,8 +461,9 @@ class AlignmentGetter(object):
     subdirectory included in source code for this package):
 
     >>> import htk_io.alignment
+    >>> alignmentIo = htk_io.alignment.AlignmentIo(framePeriod=0.005)
     >>> alignmentGetter = htk_io.alignment.AlignmentGetter(
-    ...     framePeriod=0.005, alignmentDir='example'
+    ...     alignmentIo, alignmentDir='example'
     ... )
     >>> alignmentGetter('simple') == [
     ...     (0, 10, 'apple', None),
@@ -494,9 +493,11 @@ class AlignmentGetter(object):
 
     Or even a 3-level alignment:
 
-    >>> htk_io.alignment.AlignmentGetter(
-    ...     framePeriod=1.0, alignmentDir='example'
-    ... )('example-3-level') == [
+    >>> alignmentIo2 = htk_io.alignment.AlignmentIo(framePeriod=1.0)
+    >>> alignmentGetter2 = htk_io.alignment.AlignmentGetter(
+    ...     alignmentIo2, alignmentDir='example'
+    ... )
+    >>> alignmentGetter2('example-3-level') == [
     ...     (0, 8, '0', [
     ...         (0, 3, 'a', [
     ...             (0, 1, 'A', None),
@@ -523,9 +524,9 @@ class AlignmentGetter(object):
     ... ]
     True
     """
-    def __init__(self, framePeriod, alignmentDir, alignmentExt='lab',
+    def __init__(self, alignmentIo, alignmentDir, alignmentExt='lab',
                  transform=None):
-        self.framePeriod = framePeriod
+        self.alignmentIo = alignmentIo
         self.alignmentDir = alignmentDir
         self.alignmentExt = alignmentExt
         self.transform = transform
@@ -535,7 +536,7 @@ class AlignmentGetter(object):
             self.alignmentDir,
             '%s.%s' % (uttId, self.alignmentExt)
         )
-        alignment = readAlignmentFile(alignmentFile, self.framePeriod)
+        alignment = self.alignmentIo.readFile(alignmentFile)
         if self.transform is not None:
             alignment = self.transform(alignment)
         return alignment
