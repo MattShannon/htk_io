@@ -174,7 +174,7 @@ class AlignmentTest(unittest.TestCase):
             ]
             self.assertEqual(flatAlignmentAgain, flatAlignment)
 
-    def test_flatten_unflatten(self, its=50):
+    def test_unflatten(self, its=50):
         for it in range(its):
             numLevels = randint(1, 4)
             alignment = gen_alignment(numLevels=numLevels)
