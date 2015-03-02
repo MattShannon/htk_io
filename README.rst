@@ -9,6 +9,7 @@ The following HTK / HTS file formats are currently supported:
 - alignment files (also known as "label" files)
 - decision tree question set files
 - decision tree files
+- raw vector sequence files, used by HTS for storing speech parameter sequences
 
 Alignments, trees, etc are represented in memory using simple python data
 structures.
