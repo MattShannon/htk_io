@@ -1,6 +1,6 @@
 """Functions for reading and writing HTK / HTS alignment files.
 
-HTK / HTS alignment files are often also referred to as "label" files.
+HTK / HTS alignment files are often referred to as "label" files.
 
 In this module an alignment is a sequence of segments, where each segment is a
 tuple
