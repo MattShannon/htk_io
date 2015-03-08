@@ -19,20 +19,10 @@ an alignment or None (to specify no sub-alignment).
 
 import os
 
-class AlignmentIoBase(object):
-    """An abstract class for reading and writing HTK-style alignment files."""
-    def writeFile(self, filename, alignment):
-        lines = self.writeLines(alignment)
-        with open(filename, 'w') as f:
-            for line in lines:
-                f.write(line)
-                f.write('\n')
+from htk_io.base import LineIo
+from htk_io.base import DirReader
 
-    def readFile(self, filename):
-        alignmentLines = [ line.rstrip('\n') for line in open(filename, 'U') ]
-        return self.readLines(alignmentLines)
-
-class SimpleAlignmentIo(AlignmentIoBase):
+class SimpleAlignmentIo(LineIo):
     """Reads and writes 1-level HTK-style alignment files.
 
     The amount of time between one frame and the next is specified by the float
@@ -251,7 +241,7 @@ def unflatten(flatAlignment):
 
     return alignment
 
-class AlignmentIo(AlignmentIoBase):
+class AlignmentIo(LineIo):
     """Reads and writes HTK-style alignment files.
 
     Example usage:
@@ -554,90 +544,3 @@ class AlignmentLabelTransform(object):
 
     def inv(self, alignmentNew):
         return mapAlignmentLabels(alignmentNew, self.labelTransformInvs)
-
-class AlignmentGetter(object):
-    """This class reads alignment files on demand from a directory.
-
-    Example usage (assumes the current directory contains the "example"
-    subdirectory included in source code for this package):
-
-    >>> import htk_io.alignment
-    >>> alignmentIo = htk_io.alignment.AlignmentIo(framePeriod=0.005)
-    >>> alignmentGetter = htk_io.alignment.AlignmentGetter(
-    ...     alignmentIo, alignmentDir='example'
-    ... )
-    >>> alignmentGetter('simple') == [
-    ...     (0, 10, 'apple', None),
-    ...     (10, 41, 'pears', None),
-    ... ]
-    True
-
-    For a 2-level alignment:
-
-    >>> alignmentGetter('simple-2-level') == [
-    ...     (0, 10, 'apple', [
-    ...         (0, 2, 'a', None),
-    ...         (2, 3, 'p', None),
-    ...         (3, 5, 'p', None),
-    ...         (5, 8, 'l', None),
-    ...         (8, 10, 'e', None),
-    ...     ]),
-    ...     (10, 41, 'pears', [
-    ...         (10, 11, 'p', None),
-    ...         (11, 13, 'e', None),
-    ...         (13, 14, 'a', None),
-    ...         (14, 27, 'r', None),
-    ...         (27, 41, 's', None),
-    ...     ]),
-    ... ]
-    True
-
-    Or even a 3-level alignment:
-
-    >>> alignmentIo2 = htk_io.alignment.AlignmentIo(framePeriod=1.0)
-    >>> alignmentGetter2 = htk_io.alignment.AlignmentGetter(
-    ...     alignmentIo2, alignmentDir='example'
-    ... )
-    >>> alignmentGetter2('example-3-level') == [
-    ...     (0, 8, '0', [
-    ...         (0, 3, 'a', [
-    ...             (0, 1, 'A', None),
-    ...             (1, 2, 'B', None),
-    ...             (2, 3, 'C', None),
-    ...         ]),
-    ...         (3, 5, 'b', [
-    ...             (3, 4, 'D', None),
-    ...             (4, 5, 'E', None),
-    ...         ]),
-    ...         (5, 6, 'c', [
-    ...             (5, 6, 'F', None),
-    ...         ]),
-    ...         (6, 8, 'c', [
-    ...             (6, 7, 'G', None),
-    ...             (7, 8, 'H', None),
-    ...         ]),
-    ...     ]),
-    ...     (8, 10, '1', [
-    ...         (8, 10, 'd', [
-    ...             (8, 10, 'I', None),
-    ...         ]),
-    ...     ]),
-    ... ]
-    True
-    """
-    def __init__(self, alignmentIo, alignmentDir, alignmentExt='lab',
-                 transform=None):
-        self.alignmentIo = alignmentIo
-        self.alignmentDir = alignmentDir
-        self.alignmentExt = alignmentExt
-        self.transform = transform
-
-    def __call__(self, uttId):
-        alignmentFile = os.path.join(
-            self.alignmentDir,
-            '%s.%s' % (uttId, self.alignmentExt)
-        )
-        alignment = self.alignmentIo.readFile(alignmentFile)
-        if self.transform is not None:
-            alignment = self.transform(alignment)
-        return alignment
