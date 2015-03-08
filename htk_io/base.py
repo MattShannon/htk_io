@@ -40,8 +40,8 @@ class DirReader(object):
     >>> from htk_io.base import DirReader
     >>> import htk_io.alignment as alio
     >>> alignmentIo = alio.AlignmentIo(framePeriod=0.005)
-    >>> alignmentGetter = DirReader(alignmentIo, 'example', 'lab')
-    >>> alignmentGetter('simple') == [
+    >>> getAlignment = DirReader(alignmentIo, 'example', 'lab')
+    >>> getAlignment('simple') == [
     ...     (0, 10, 'apple', None),
     ...     (10, 41, 'pears', None),
     ... ]
@@ -49,7 +49,7 @@ class DirReader(object):
 
     For a 2-level alignment:
 
-    >>> alignmentGetter('simple-2-level') == [
+    >>> getAlignment('simple-2-level') == [
     ...     (0, 10, 'apple', [
     ...         (0, 2, 'a', None),
     ...         (2, 3, 'p', None),
@@ -70,8 +70,8 @@ class DirReader(object):
     Or even a 3-level alignment:
 
     >>> alignmentIo2 = alio.AlignmentIo(framePeriod=1.0)
-    >>> alignmentGetter2 = DirReader(alignmentIo2, 'example', 'lab')
-    >>> alignmentGetter2('example-3-level') == [
+    >>> getAlignment2 = DirReader(alignmentIo2, 'example', 'lab')
+    >>> getAlignment2('example-3-level') == [
     ...     (0, 8, '0', [
     ...         (0, 3, 'a', [
     ...             (0, 1, 'A', None),
