@@ -465,6 +465,7 @@ def mapAlignmentLabels(alignment, labelMaps):
             for startTime, endTime, label, subAlignment in alignment
         ]
 
+# (FIXME : support self.inv.inv? How to encode general invertible transforms?)
 class AlignmentLabelTransform(object):
     """Transforms an alignment by mapping the labels at each depth.
 
