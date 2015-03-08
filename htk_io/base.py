@@ -38,8 +38,8 @@ class DirReader(object):
     subdirectory included in source code for this package):
 
     >>> from htk_io.base import DirReader
-    >>> import htk_io.alignment
-    >>> alignmentIo = htk_io.alignment.AlignmentIo(framePeriod=0.005)
+    >>> import htk_io.alignment as alio
+    >>> alignmentIo = alio.AlignmentIo(framePeriod=0.005)
     >>> alignmentGetter = DirReader(alignmentIo, 'example', 'lab')
     >>> alignmentGetter('simple') == [
     ...     (0, 10, 'apple', None),
@@ -69,7 +69,7 @@ class DirReader(object):
 
     Or even a 3-level alignment:
 
-    >>> alignmentIo2 = htk_io.alignment.AlignmentIo(framePeriod=1.0)
+    >>> alignmentIo2 = alio.AlignmentIo(framePeriod=1.0)
     >>> alignmentGetter2 = DirReader(alignmentIo2, 'example', 'lab')
     >>> alignmentGetter2('example-3-level') == [
     ...     (0, 8, '0', [

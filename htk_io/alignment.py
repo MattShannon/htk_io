@@ -91,8 +91,8 @@ def flatten(alignment, checkRecover=True):
 
     For example for a 2-level alignment:
 
-    >>> import htk_io.alignment
-    >>> htk_io.alignment.flatten([
+    >>> import htk_io.alignment as alio
+    >>> alio.flatten([
     ...     (0, 2, 'a', [
     ...         (0, 1, 'X', None),
     ...         (1, 2, 'Y', None),
@@ -109,13 +109,13 @@ def flatten(alignment, checkRecover=True):
 
     Any sub-alignments should either be non-empty lists or None:
 
-    >>> htk_io.alignment.flatten([
+    >>> alio.flatten([
     ...     (0, 1, 'a', []),
     ... ])
     Traceback (most recent call last):
         ...
     RuntimeError: sub-alignment was neither a non-empty list nor None: []
-    >>> htk_io.alignment.flatten([
+    >>> alio.flatten([
     ...     (0, 1, 'a', [
     ...         (0, 1, 'A', []),
     ...     ]),
@@ -125,7 +125,7 @@ def flatten(alignment, checkRecover=True):
     RuntimeError: sub-alignment was neither a non-empty list nor None: []
 
     However for convenience the main alignment is allowed to be an empty list:
-    >>> htk_io.alignment.flatten([])
+    >>> alio.flatten([])
     []
 
     The hierarchical alignment should be of a consistent depth.
@@ -133,7 +133,7 @@ def flatten(alignment, checkRecover=True):
     original hierarchical alignment is recoverable from the flat alignment.
     This is the case whenever the restrictions mentioned above are adhered to.
 
-    >>> htk_io.alignment.flatten([
+    >>> alio.flatten([
     ...     (0, 2, 'a', [
     ...         (0, 1, 'A', None),
     ...         (1, 2, 'B', None),
@@ -185,8 +185,8 @@ def unflatten(flatAlignment):
 
     For example for a 2-level alignment:
 
-    >>> import htk_io.alignment
-    >>> htk_io.alignment.unflatten([
+    >>> import htk_io.alignment as alio
+    >>> alio.unflatten([
     ...     (0, 1, ('X', 'a'), None),
     ...     (1, 2, ('Y',), None),
     ...     (2, 3, ('Z', 'b'), None),
@@ -246,8 +246,8 @@ class AlignmentIo(LineIo):
 
     Example usage:
 
-    >>> import htk_io.alignment
-    >>> alignmentIo = htk_io.alignment.AlignmentIo(framePeriod=1.0)
+    >>> import htk_io.alignment as alio
+    >>> alignmentIo = alio.AlignmentIo(framePeriod=1.0)
     >>> alignmentIo.writeLines([
     ...     (0, 1, 'the', None),
     ...     (1, 2, 'cat', None),
@@ -276,7 +276,7 @@ class AlignmentIo(LineIo):
     The amount of time between one frame and the next is specified by the float
     `framePeriod` in seconds.
 
-    >>> alignmentIo2 = htk_io.alignment.AlignmentIo(framePeriod=0.5)
+    >>> alignmentIo2 = alio.AlignmentIo(framePeriod=0.5)
     >>> alignmentIo2.writeLines([
     ...     (0, 2, 'the', None),
     ...     (2, 4, 'cat', None),
@@ -306,7 +306,7 @@ class AlignmentIo(LineIo):
     conversion from number of frames to units of 1e-7 seconds that happens
     during alignment writing:
 
-    >>> alignmentIo3 = htk_io.alignment.AlignmentIo(framePeriod=5e-8)
+    >>> alignmentIo3 = alio.AlignmentIo(framePeriod=5e-8)
     ... # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
@@ -473,11 +473,11 @@ class AlignmentLabelTransform(object):
 
     Example usage:
 
-    >>> import htk_io.alignment
-    >>> alignmentLabelTransform = htk_io.alignment.AlignmentLabelTransform(
+    >>> import htk_io.alignment as alio
+    >>> alignmentTransform = alio.AlignmentLabelTransform(
     ...     [lambda label: label == 'cat']
     ... )
-    >>> alignmentLabelTransform([
+    >>> alignmentTransform([
     ...     (0, 1, 'the', None),
     ...     (1, 2, 'cat', None),
     ...     (2, 5, 'cat', None),
@@ -500,10 +500,8 @@ class AlignmentLabelTransform(object):
     ...     def inv(self, _list):
     ...         return ''.join(_list)
     ...
-    >>> alignmentLabelTransform = htk_io.alignment.AlignmentLabelTransform(
-    ...     [SimpleTransform()]
-    ... )
-    >>> alignmentLabelTransform([
+    >>> alignmentTransform = alio.AlignmentLabelTransform([SimpleTransform()])
+    >>> alignmentTransform([
     ...     (0, 1, 'the', None),
     ...     (1, 2, 'cat', None),
     ...     (2, 5, 'cat', None),
@@ -515,7 +513,7 @@ class AlignmentLabelTransform(object):
     ...     (5, 6, ['s', 'a', 't'], None),
     ... ]
     True
-    >>> alignmentLabelTransform.inv([
+    >>> alignmentTransform.inv([
     ...     (0, 1, ['t', 'h', 'e'], None),
     ...     (1, 2, ['c', 'a', 't'], None),
     ...     (2, 5, ['c', 'a', 't'], None),

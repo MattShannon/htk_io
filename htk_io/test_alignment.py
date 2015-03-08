@@ -10,10 +10,10 @@ import doctest
 import random
 from numpy.random import randint, randn
 
-import htk_io.alignment
+import htk_io.alignment as alio
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(htk_io.alignment))
+    tests.addTests(doctest.DocTestSuite(alio))
     return tests
 
 def gen_label(size=None, minSize=1, alphabet=None):
@@ -94,13 +94,13 @@ def gen_labelMap():
 class AlignmentTest(unittest.TestCase):
     def test_SimpleAlignmentIo_writeLines_empty(self):
         framePeriod = gen_framePeriod()
-        alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
+        alignmentIo = alio.SimpleAlignmentIo(framePeriod)
         self.assertEqual(alignmentIo.writeLines([]), [])
 
     def test_SimpleAlignmentIo_writeLines_single_line(self, its=50):
         for it in range(its):
             framePeriod = gen_framePeriod()
-            alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
+            alignmentIo = alio.SimpleAlignmentIo(framePeriod)
             startTime = randint(-10, 11)
             dur = randint(10)
             endTime = startTime + dur
@@ -117,7 +117,7 @@ class AlignmentTest(unittest.TestCase):
     def test_SimpleAlignmentIo_writeLines_concat(self, its=50):
         for it in range(its):
             framePeriod = gen_framePeriod()
-            alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
+            alignmentIo = alio.SimpleAlignmentIo(framePeriod)
             alignment = gen_alignment()
             breakIndex = randint(len(alignment) + 1)
             alignment0 = alignment[:breakIndex]
@@ -132,7 +132,7 @@ class AlignmentTest(unittest.TestCase):
         for it in range(its):
             alignment = gen_alignment()
             framePeriod = gen_framePeriod()
-            alignmentIo = htk_io.alignment.SimpleAlignmentIo(framePeriod)
+            alignmentIo = alio.SimpleAlignmentIo(framePeriod)
 
             alignmentLines = alignmentIo.writeLines(alignment)
             alignmentAgain = alignmentIo.readLines(alignmentLines)
@@ -142,7 +142,7 @@ class AlignmentTest(unittest.TestCase):
         for it in range(its):
             alignment = gen_alignment()
 
-            flatAlignment = htk_io.alignment.flatten(alignment)
+            flatAlignment = alio.flatten(alignment)
 
             flatAlignmentGood = [
                 (startTime, endTime, (label,), None)
@@ -155,13 +155,10 @@ class AlignmentTest(unittest.TestCase):
             numLevels = randint(2, 4)
             alignment = gen_alignment(numLevels=numLevels)
 
-            flatAlignment = htk_io.alignment.flatten(alignment)
+            flatAlignment = alio.flatten(alignment)
 
-            flatAlignmentNested = htk_io.alignment.flatten([
-                (
-                    startTime, endTime, label,
-                    htk_io.alignment.flatten(subAlignment)
-                )
+            flatAlignmentNested = alio.flatten([
+                (startTime, endTime, label, alio.flatten(subAlignment))
                 for startTime, endTime, label, subAlignment in alignment
             ])
 
@@ -189,18 +186,16 @@ class AlignmentTest(unittest.TestCase):
             numLevels = randint(1, 4)
             alignment = gen_alignment(numLevels=numLevels)
 
-            flatAlignment = htk_io.alignment.flatten(alignment)
-            alignmentAgain = htk_io.alignment.unflatten(flatAlignment)
+            flatAlignment = alio.flatten(alignment)
+            alignmentAgain = alio.unflatten(flatAlignment)
             self.assertEqual(alignmentAgain, alignment)
 
     def test_AlignmentIo_writeLines_1_level(self, its=50):
         for it in range(its):
             framePeriod = gen_framePeriod()
             alignment = gen_alignment()
-            simpleAlignmentIo = htk_io.alignment.SimpleAlignmentIo(
-                framePeriod
-            )
-            alignmentIo = htk_io.alignment.AlignmentIo(framePeriod)
+            simpleAlignmentIo = alio.SimpleAlignmentIo(framePeriod)
+            alignmentIo = alio.AlignmentIo(framePeriod)
 
             self.assertEqual(
                 simpleAlignmentIo.writeLines(alignment),
@@ -212,7 +207,7 @@ class AlignmentTest(unittest.TestCase):
             numLevels = randint(2, 4)
             alignment = gen_alignment(numLevels=numLevels)
             framePeriod = gen_framePeriod()
-            alignmentIo = htk_io.alignment.AlignmentIo(framePeriod)
+            alignmentIo = alio.AlignmentIo(framePeriod)
 
             alignmentLines = alignmentIo.writeLines(alignment)
 
@@ -229,7 +224,7 @@ class AlignmentTest(unittest.TestCase):
             numLevels = randint(1, 4)
             alignment = gen_alignment(numLevels=numLevels)
             framePeriod = gen_framePeriod()
-            alignmentIo = htk_io.alignment.AlignmentIo(framePeriod)
+            alignmentIo = alio.AlignmentIo(framePeriod)
 
             alignmentLines = alignmentIo.writeLines(alignment)
             alignmentAgain = alignmentIo.readLines(alignmentLines)
@@ -240,10 +235,7 @@ class AlignmentTest(unittest.TestCase):
             alignment = gen_alignment()
             labelMap = gen_labelMap()
 
-            alignmentNew = htk_io.alignment.mapAlignmentLabels(
-                alignment,
-                [labelMap]
-            )
+            alignmentNew = alio.mapAlignmentLabels(alignment, [labelMap])
 
             alignmentNewGood = [
                 (startTime, endTime, labelMap(label), None)
@@ -257,14 +249,12 @@ class AlignmentTest(unittest.TestCase):
             alignment = gen_alignment(numLevels=numLevels)
             labelMaps = [ gen_labelMap() for _ in range(numLevels) ]
 
-            alignmentNew = htk_io.alignment.mapAlignmentLabels(
-                alignment, labelMaps
-            )
+            alignmentNew = alio.mapAlignmentLabels(alignment, labelMaps)
 
             alignmentNewAgain = [
                 (
                     startTime, endTime, labelMaps[0](label),
-                    htk_io.alignment.mapAlignmentLabels(subAlignment, labelMaps[1:])
+                    alio.mapAlignmentLabels(subAlignment, labelMaps[1:])
                 )
                 for startTime, endTime, label, subAlignment in alignment
             ]
