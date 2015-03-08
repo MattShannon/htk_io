@@ -5,13 +5,12 @@
 # This file is part of htk_io.
 # See `License` for details of license and warranty.
 
-import htk_io.alignment
-
 import unittest
 import doctest
 import random
-
 from numpy.random import randint, randn
+
+import htk_io.alignment
 
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(htk_io.alignment))

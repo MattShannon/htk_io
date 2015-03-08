@@ -5,10 +5,10 @@
 # This file is part of htk_io.
 # See `License` for details of license and warranty.
 
-import htk_io.base
-
 import unittest
 import doctest
+
+import htk_io.base
 
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(htk_io.base))
