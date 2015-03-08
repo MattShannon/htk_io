@@ -24,38 +24,6 @@ class LineIo(Io):
         lines = [ line.rstrip('\n') for line in open(filename, 'U') ]
         return self.readLines(lines)
 
-# FIXME : remove?
-class writeWrap(object):
-    """Wraps a write function to use a file instead of a sequence of lines.
-
-    Given a function which returns a sequence of lines, this class defines a
-    new function which takes a filename as its first argument and returns None.
-    """
-    def __init__(self, writeLines):
-        self.writeLines = writeLines
-
-    def __call__(self, filename, *args, **kwargs):
-        lines = self.writeLines(*args, **kwargs)
-        with open(filename, 'w') as f:
-            for line in lines:
-                f.write(line)
-                f.write('\n')
-
-# FIXME : remove?
-class readWrap(object):
-    """Wraps a read function to use a file instead of a sequence of lines.
-
-    Given a function which takes a sequence of lines as its first argument,
-    this class defines a new function which takes a filename as its first
-    argument.
-    """
-    def __init__(self, readLines):
-        self.readLines = readLines
-
-    def __call__(self, filename, *args, **kwargs):
-        lines = [ line.rstrip('\n') for line in open(filename, 'U') ]
-        return self.readLines(lines, *args, **kwargs)
-
 # (FIXME : add corresponding write method and rename class
 #    (after deciding how to encode general invertible transforms nicely))
 class DirReader(object):
