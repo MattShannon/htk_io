@@ -5,4 +5,4 @@
 # This file is part of htk_io.
 # See `License` for details of license and warranty.
 
-__version__ = '0.3'
+__version__ = '0.4.dev1'
