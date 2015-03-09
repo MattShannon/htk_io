@@ -27,6 +27,7 @@ import numpy as np
 
 # FIXME : add tests
 
+# FIXME : change to a HMGenSPdfIo class
 def readHMGenSPdf(pdfFile, paramOrder, numWindows):
     """Reads an HMGenS probability density (pdf) file into a numpy array.
 
@@ -36,7 +37,7 @@ def readHMGenSPdf(pdfFile, paramOrder, numWindows):
     pdfAll = np.reshape(
         np.fromfile(pdfFile, dtype=np.float32),
         (-1, 2, numWindows, paramOrder)
-    ).astype(np.float64)
+    ).astype(np.float)
     bWinAll = pdfAll[:, 0]
     tauWinAll = pdfAll[:, 1]
     return bWinAll, tauWinAll
