@@ -33,3 +33,12 @@ class VecSeqIo(object):
     def writeFile(self, vecSeqFile, vecSeq):
         """Writes a raw vector sequence file."""
         vecSeq.astype(self.dtypeFile).tofile(vecSeqFile)
+
+class VecSeqToTraj(object):
+    """Extracts one particular trajectory from a vector sequence."""
+    def __init__(self, vecIndex):
+        self.vecIndex = vecIndex
+
+    def __call__(self, vecSeq):
+        # (copy here allows larger array to be garbage collected)
+        return vecSeq[:, self.vecIndex].copy()
