@@ -25,15 +25,23 @@ htk_io.
 Installation
 ------------
 
-For most purposes the simplest way to install htk_io is to use pip::
+For most purposes the simplest way to install htk_io is to use pip.
+For example in Debian and Ubuntu::
 
+    sudo apt-get install python-numpy
     sudo pip install htk_io
 
-This installs the latest released version of
-`htk_io on PyPI <https://pypi.python.org/pypi/htk_io>`_.
-Alternatively you can download htk_io from PyPI and install it using::
+The first command installs numpy from the system repository, since installing
+numpy using pip is generally not recommended.
+The second command installs the latest released version of
+`htk_io on PyPI <https://pypi.python.org/pypi/htk_io>`_, together with any
+currently uninstalled python packages required by htk_io.
 
-    sudo python setup.py install
+htk_io can also be installed in a virtualenv::
+
+    sudo apt-get install python-numpy
+    virtualenv --system-site-packages env
+    env/bin/pip install htk_io
 
 The latest development version of htk_io is available from a github repository
 (see below).
@@ -62,6 +70,11 @@ To obtain the latest source code using git::
 Development is in fact done using `darcs <http://darcs.net/>`_, with the darcs
 repository converted to a git repository using
 `darcs-to-git <https://github.com/purcell/darcs-to-git>`_.
+
+To install any currently uninstalled python packages required by htk_io::
+
+    sudo apt-get install cython python-numpy
+    sudo pip install -r requirements.txt
 
 Bugs
 ----

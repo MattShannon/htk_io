@@ -1,5 +1,5 @@
 #!/usr/bin/python
-"""A distutils-based script for distributing and installing htk_io."""
+"""A setuptools-based script for distributing and installing htk_io."""
 
 # Copyright 2014, 2015 Matt Shannon
 
@@ -8,10 +8,12 @@
 
 
 import os
-from distutils.core import setup
+from setuptools import setup
 
 with open('README.rst') as readmeFile:
     long_description = readmeFile.read()
+
+requires = [ line.rstrip('\n') for line in open('requirements.txt') ]
 
 setup(
     name='htk_io',
@@ -22,5 +24,6 @@ setup(
     author_email='matt.shannon@cantab.net',
     license='3-clause BSD (see License file)',
     packages=['htk_io'],
+    install_requires=requires,
     long_description=long_description,
 )
