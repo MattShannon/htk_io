@@ -29,6 +29,6 @@ setup(
         'bin/htk_io_get_label_map_leaf_macro_id_to_leaf_index.py',
         'bin/htk_io_map_alignment_files_label_sublabel_to_leaf_macro_id.py',
         'bin/htk_io_map_alignment_files.py',
-    ]),
+    ],
     long_description=long_description,
 )
