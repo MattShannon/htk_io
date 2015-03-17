@@ -4,8 +4,8 @@
 Given an HTS demo-style decision tree file and a collection of two-level
 (label, sublabel) alignment files, this command maps each (label, sublabel)
 pair to the corresponding leaf macro id as specified by the decision tree.
-The result is a collection of 1-level alignment files where the labels are leaf
-macro ids.
+The result is a collection of 1-level alignment files where each label is a
+leaf macro id (e.g. "mgc_s2_23").
 
 Two-level (label, sublabel) alignment files suitable for input to this command
 may be obtained using HTS's HSMMAlign command with the -f flag.
