@@ -17,7 +17,7 @@ requires = [ line.rstrip('\n') for line in open('requirements.txt') ]
 
 setup(
     name='htk_io',
-    version='0.5',
+    version='0.6.dev1',
     description='Read and write HTK and HTS files from python.',
     url='http://github.com/MattShannon/htk_io',
     author='Matt Shannon',
